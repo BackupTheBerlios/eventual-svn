@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<project name="Eventual" default="test" xmlns="http://nant.sf.net/schemas/nant.xsd">
+	<property name="build.dir" value="build" />
+	<property name="src.dir" value="src" />
+
+	<!-- Tools paths -->
+	<property name="msbuild" value="C:/WINDOWS/Microsoft.NET/Framework/v2.0.50727/MSBuild.exe" />
+	<property name="nunitconsole" value="tools/nunit/nunit-console.exe" />
+
+	<!-- User targets -->
+	<target name="clean" description="Delete automated build artifacts">
+		<delete dir="${build.dir}" if="${directory::exists(build.dir)}"/>
+	</target>
+	
+	<target name="compile" description="Compiles using the AutomatedDebug Configuration">
+		<exec program="${msbuild}">
+			<arg value="src/Eventual.sln" />
+			<arg value="/v:n" />
+			<arg value="/p:Configuration=UnitTest" />
+			<arg value="/p:WarningLevel=0" />
+			<arg value="/p:SolutionDir=src" />
+		</exec>
+
+		<!-- make build dir -->
+		<mkdir dir="${build.dir}" />
+
+		<!-- Copy artifacts -->
+		<copy todir="${build.dir}" overwrite="true">
+			<fileset basedir="src/Eventual.Domain.UnitTests/bin/UnitTest/">
+				<include name='*.*' />
+			</fileset>
+		</copy>
+
+	</target>
+	
+	<target name="test" depends="compile, run-unit-tests" description="Compile and run tests" />
+		
+	<target name="full" depends="clean, compile, test"	description="Cleans, compiles, and runs tests" />
+
+	<!-- Internal targets -->
+	<target name="run-unit-tests">
+		<mkdir dir="${build.dir}\test-reports" />
+		<exec program="${nunitconsole}" >
+			<arg value="build/Eventual.Domain.UnitTests.dll" />
+			<arg value="/xml:${build.dir}\test-reports\Eventual.Domain.UnitTests.xml" />
+		</exec>
+	</target>
+	
+</project>
